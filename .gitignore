@@ -19,6 +19,24 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+venv/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Cypress
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
 
 # Django
 *.log
@@ -28,16 +46,6 @@ db.sqlite3-journal
 media/
 staticfiles/
 
-# Virtual Environment
-venv/
-ENV/
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# OS
+# System
 .DS_Store
 Thumbs.db 
