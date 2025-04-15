@@ -48,31 +48,24 @@ def edit_task(request, task_id):
 @require_http_methods(['POST'])
 def update_status(request, task_id):
     """Update task status via AJAX request."""
-    try:
-        task = get_object_or_404(Task, id=task_id)
-        new_status = request.POST.get('status')
+    task = get_object_or_404(Task, id=task_id)
+    new_status = request.POST.get('status')
 
-        # Validate the new status
-        if new_status not in dict(Task.STATUS_CHOICES):
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Invalid status'
-            }, status=400)
-
-        # Update and save the task
-        task.status = new_status
-        task.save()
-
-        # Return success response with updated task info
-        return JsonResponse({
-            'status': 'success',
-            'task_status': task.status,
-            'task_status_display': task.get_status_display(),
-            'task_id': task.id
-        })
-
-    except Exception as e:
+    # Validate the new status
+    if new_status not in dict(Task.STATUS_CHOICES):
         return JsonResponse({
             'status': 'error',
-            'message': str(e)
+            'message': 'Invalid status'
         }, status=400)
+
+    # Update and save the task
+    task.status = new_status
+    task.save()
+
+    # Return success response with updated task info
+    return JsonResponse({
+        'status': 'success',
+        'task_status': task.status,
+        'task_status_display': task.get_status_display(),
+        'task_id': task.id
+    })
