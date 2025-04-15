@@ -3,138 +3,265 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Todo List</title>
+    <title>Kanban Board</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
             background-color: #f8f9fa;
-            padding-top: 2rem;
+            padding: 2rem 1rem;
+            min-height: 100vh;
         }
-        .task-list {
-            max-width: 600px;
+        .kanban-board {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
             margin: 0 auto;
+            max-width: 1400px;
+        }
+        .kanban-column {
+            background-color: #ebecf0;
+            border-radius: 8px;
+            padding: 1rem;
+            min-height: 500px;
+        }
+        .column-header {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            text-align: center;
+            border-radius: 4px;
+        }
+        .column-open .column-header {
+            background-color: #ff7875;
+            color: white;
+        }
+        .column-in_progress .column-header {
+            background-color: #ffc069;
+            color: white;
+        }
+        .column-completed .column-header {
+            background-color: #52c41a;
+            color: white;
         }
         .task-item {
             background-color: white;
-            border-radius: 8px;
+            border-radius: 4px;
             padding: 1rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 0.8rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            cursor: move;
+            transition: transform 0.2s, box-shadow 0.2s;
+            user-select: none;
+        }
+        .task-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+        }
+        .task-item.dragging {
+            opacity: 0.5;
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .column-drop-zone.drag-over {
+            background-color: rgba(0,0,0,0.05);
+            border-radius: 4px;
+        }
+        .task-title {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        .task-meta {
+            font-size: 0.8rem;
+            color: #666;
         }
         .task-form {
+            max-width: 600px;
+            margin: 0 auto 2rem auto;
             background-color: white;
             border-radius: 8px;
             padding: 1.5rem;
-            margin-bottom: 2rem;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+        .column-drop-zone {
+            min-height: 100px;
+            padding: 0.5rem;
+            transition: background-color 0.2s;
+        }
         .task-actions {
+            margin-top: 0.5rem;
             display: flex;
+            justify-content: flex-end;
             gap: 0.5rem;
-        }
-        .task-content {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        .task-title {
-            flex-grow: 1;
-        }
-        .status-badge {
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.875rem;
-        }
-        .status-open {
-            background-color: #e9ecef;
-            color: #495057;
-        }
-        .status-in_progress {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-        .status-completed {
-            background-color: #d4edda;
-            color: #155724;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="task-list">
-            <h1 class="text-center mb-4">Todo List</h1>
-            
-            <div class="task-form">
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="input-group">
-                        {{ form.title }}
-                        <button type="submit" class="btn btn-primary">Add Task</button>
-                    </div>
-                </form>
+    <div class="container-fluid">
+        <h1 class="text-center mb-4">Kanban Board</h1>
+        
+        <div class="task-form">
+            <form method="post">
+                {% csrf_token %}
+                <div class="input-group">
+                    {{ form.title }}
+                    <button type="submit" class="btn btn-primary">Add Task</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="kanban-board">
+            <div class="kanban-column column-open" data-status="open">
+                <div class="column-header">Backlog</div>
+                <div class="column-drop-zone">
+                    {% for task in tasks %}
+                        {% if task.status == 'open' %}
+                        <div class="task-item" draggable="true" data-task-id="{{ task.id }}">
+                            <div class="task-title">{{ task.title }}</div>
+                            <div class="task-meta">
+                                Created: {{ task.created_at|date:"M d, Y" }}
+                            </div>
+                            <div class="task-actions">
+                                <a href="{% url 'edit_task' task.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
             </div>
 
-            <div class="tasks">
-                {% for task in tasks %}
-                <div class="task-item">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="task-content">
-                            <div class="task-title">
-                                <span class="{% if task.status == 'completed' %}text-decoration-line-through text-muted{% endif %}">
-                                    {{ task.title }}
-                                </span>
-                                <small class="text-muted ms-2">{{ task.created_at|date:"M d, Y" }}</small>
+            <div class="kanban-column column-in_progress" data-status="in_progress">
+                <div class="column-header">In Progress</div>
+                <div class="column-drop-zone">
+                    {% for task in tasks %}
+                        {% if task.status == 'in_progress' %}
+                        <div class="task-item" draggable="true" data-task-id="{{ task.id }}">
+                            <div class="task-title">{{ task.title }}</div>
+                            <div class="task-meta">
+                                Created: {{ task.created_at|date:"M d, Y" }}
                             </div>
-                            <select class="form-select form-select-sm status-select" 
-                                    data-task-id="{{ task.id }}"
-                                    style="width: auto;">
-                                {% for value, label in task.STATUS_CHOICES %}
-                                    <option value="{{ value }}" {% if task.status == value %}selected{% endif %}>
-                                        {{ label }}
-                                    </option>
-                                {% endfor %}
-                            </select>
+                            <div class="task-actions">
+                                <a href="{% url 'edit_task' task.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                            </div>
                         </div>
-                        <div class="task-actions">
-                            <a href="{% url 'edit_task' task.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="kanban-column column-completed" data-status="completed">
+                <div class="column-header">Done</div>
+                <div class="column-drop-zone">
+                    {% for task in tasks %}
+                        {% if task.status == 'completed' %}
+                        <div class="task-item" draggable="true" data-task-id="{{ task.id }}">
+                            <div class="task-title text-decoration-line-through text-muted">{{ task.title }}</div>
+                            <div class="task-meta">
+                                Created: {{ task.created_at|date:"M d, Y" }}
+                            </div>
+                            <div class="task-actions">
+                                <a href="{% url 'edit_task' task.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                            </div>
                         </div>
-                    </div>
+                        {% endif %}
+                    {% endfor %}
                 </div>
-                {% empty %}
-                <div class="text-center text-muted">
-                    No tasks yet. Add your first task above!
-                </div>
-                {% endfor %}
             </div>
         </div>
     </div>
 
     <script>
-        document.querySelectorAll('.status-select').forEach(select => {
-            select.addEventListener('change', function() {
-                const taskId = this.dataset.taskId;
-                const taskTitle = this.closest('.task-content').querySelector('.task-title span');
+        document.addEventListener('DOMContentLoaded', function() {
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const tasks = document.querySelectorAll('.task-item');
+            const dropZones = document.querySelectorAll('.column-drop-zone');
+            let draggedTask = null;
+
+            // Add drag and drop event listeners to tasks
+            tasks.forEach(task => {
+                task.addEventListener('dragstart', handleDragStart);
+                task.addEventListener('dragend', handleDragEnd);
+            });
+
+            // Add drop zone event listeners
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragenter', handleDragEnter);
+                zone.addEventListener('dragover', handleDragOver);
+                zone.addEventListener('dragleave', handleDragLeave);
+                zone.addEventListener('drop', handleDrop);
+            });
+
+            function handleDragStart(e) {
+                draggedTask = this;
+                this.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', this.dataset.taskId);
+            }
+
+            function handleDragEnd(e) {
+                this.classList.remove('dragging');
+                dropZones.forEach(zone => zone.classList.remove('drag-over'));
+                draggedTask = null;
+            }
+
+            function handleDragEnter(e) {
+                e.preventDefault();
+                this.classList.add('drag-over');
+            }
+
+            function handleDragOver(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+            }
+
+            function handleDragLeave(e) {
+                this.classList.remove('drag-over');
+            }
+
+            function handleDrop(e) {
+                e.preventDefault();
+                this.classList.remove('drag-over');
                 
+                if (!draggedTask) return;
+
+                const newStatus = this.parentElement.dataset.status;
+                const taskId = draggedTask.dataset.taskId;
+                const formData = new FormData();
+                formData.append('status', newStatus);
+
+                // Update task status via API
                 fetch(`/task/${taskId}/update-status/`, {
                     method: 'POST',
                     headers: {
-                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': csrfToken
                     },
-                    body: `status=${this.value}`
+                    body: formData
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
-                        if (data.task_status === 'completed') {
+                        // Move the task to the new column
+                        this.appendChild(draggedTask);
+                        
+                        // Update task styling if completed
+                        const taskTitle = draggedTask.querySelector('.task-title');
+                        if (newStatus === 'completed') {
                             taskTitle.classList.add('text-decoration-line-through', 'text-muted');
                         } else {
                             taskTitle.classList.remove('text-decoration-line-through', 'text-muted');
                         }
+                    } else {
+                        console.error('Error updating task:', data.message);
+                        // Refresh the page to restore the correct state
+                        window.location.reload();
                     }
                 })
-                .catch(error => console.error('Error:', error));
-            });
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Refresh the page to restore the correct state
+                    window.location.reload();
+                });
+            }
         });
     </script>
 </body>

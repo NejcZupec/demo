@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
 from .models import Task
 from .forms import TaskForm, TaskEditForm
 
@@ -35,16 +36,29 @@ def edit_task(request, task_id):
         'task': task
     })
 
+@require_http_methods(['POST'])
 def update_status(request, task_id):
-    if request.method == 'POST':
+    try:
         task = get_object_or_404(Task, id=task_id)
         new_status = request.POST.get('status')
-        if new_status in dict(Task.STATUS_CHOICES):
-            task.status = new_status
-            task.save()
+        
+        if new_status not in dict(Task.STATUS_CHOICES):
             return JsonResponse({
-                'status': 'success',
-                'task_status': task.status,
-                'task_status_display': task.get_status_display()
-            })
-    return JsonResponse({'status': 'error'}, status=400)
+                'status': 'error',
+                'message': 'Invalid status'
+            }, status=400)
+        
+        task.status = new_status
+        task.save()
+        
+        return JsonResponse({
+            'status': 'success',
+            'task_status': task.status,
+            'task_status_display': task.get_status_display(),
+            'task_id': task.id
+        })
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=400)
