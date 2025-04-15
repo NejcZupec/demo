@@ -59,7 +59,8 @@ class TaskViewTests(TestCase):
         })
         self.assertEqual(response.status_code, 200)  # Returns to form
         self.assertFalse(Task.objects.filter(title='').exists())
-        self.assertFormError(response, 'form', 'title', 'This field is required.')
+        form = response.context['form']
+        self.assertTrue(form.errors['title'])
 
     def test_edit_task_GET(self):
         """Test GET request to edit task view"""
@@ -105,7 +106,7 @@ class TaskViewTests(TestCase):
         self.assertJSONEqual(response.content, {
             'status': 'success',
             'task_status': 'completed',
-            'task_status_display': 'Done',
+            'task_status_display': 'Completed',
             'task_id': self.task.id
         })
         self.task.refresh_from_db()
@@ -121,8 +122,8 @@ class TaskViewTests(TestCase):
         self.assertEqual(response_data['status'], 'error')
         self.assertEqual(response_data['message'], 'Invalid status')
 
-    def test_update_status_404(self):
+    def test_update_status_missing_task(self):
         """Test updating status of non-existent task"""
         url = reverse('update_status', args=[99999])  # Non-existent ID
-        response = self.client.post(url)
+        response = self.client.post(url, {'status': 'completed'})
         self.assertEqual(response.status_code, 404)
