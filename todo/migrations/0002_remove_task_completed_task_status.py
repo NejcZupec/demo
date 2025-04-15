@@ -11,12 +11,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RemoveField(
-            model_name='task',
-            name='completed',
-        ),
-        migrations.AddField(
-            model_name='task',
-            name='status',
-            field=models.CharField(choices=[('open', 'Open'), ('in_progress', 'In Progress'), ('completed', 'Completed')], default='open', max_length=20),
-        ),
-    ]
+            model_name='task', name='completed', ), migrations.AddField(
+            model_name='task', name='status', field=models.CharField(
+                choices=[
+                    ('open', 'Open'), ('in_progress', 'In Progress'), ('completed', 'Completed')], default='open', max_length=20), ), ]

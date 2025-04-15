@@ -13,6 +13,17 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='task',
             name='status',
-            field=models.CharField(choices=[('open', 'Open'), ('in_progress', 'In Progress'), ('in_review', 'In Review'), ('completed', 'Completed')], default='open', max_length=20),
+            field=models.CharField(
+                choices=[
+                    ('open',
+                     'Open'),
+                    ('in_progress',
+                     'In Progress'),
+                    ('in_review',
+                     'In Review'),
+                    ('completed',
+                     'Completed')],
+                default='open',
+                max_length=20),
         ),
     ]
