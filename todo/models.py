@@ -6,6 +6,7 @@ class Task(models.Model):
     STATUS_CHOICES = [
         ('open', 'Open'),
         ('in_progress', 'In Progress'),
+        ('in_review', 'In Review'),
         ('completed', 'Completed'),
     ]
     
