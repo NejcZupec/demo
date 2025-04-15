@@ -32,6 +32,31 @@
             display: flex;
             gap: 0.5rem;
         }
+        .task-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .task-title {
+            flex-grow: 1;
+        }
+        .status-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+        }
+        .status-open {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+        .status-in_progress {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .status-completed {
+            background-color: #d4edda;
+            color: #155724;
+        }
     </style>
 </head>
 <body>
@@ -53,11 +78,22 @@
                 {% for task in tasks %}
                 <div class="task-item">
                     <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <span class="{% if task.completed %}text-decoration-line-through text-muted{% endif %}">
-                                {{ task.title }}
-                            </span>
-                            <small class="text-muted ms-2">{{ task.created_at|date:"M d, Y" }}</small>
+                        <div class="task-content">
+                            <div class="task-title">
+                                <span class="{% if task.status == 'completed' %}text-decoration-line-through text-muted{% endif %}">
+                                    {{ task.title }}
+                                </span>
+                                <small class="text-muted ms-2">{{ task.created_at|date:"M d, Y" }}</small>
+                            </div>
+                            <select class="form-select form-select-sm status-select" 
+                                    data-task-id="{{ task.id }}"
+                                    style="width: auto;">
+                                {% for value, label in task.STATUS_CHOICES %}
+                                    <option value="{{ value }}" {% if task.status == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
                         </div>
                         <div class="task-actions">
                             <a href="{% url 'edit_task' task.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
@@ -72,5 +108,34 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.querySelectorAll('.status-select').forEach(select => {
+            select.addEventListener('change', function() {
+                const taskId = this.dataset.taskId;
+                const taskTitle = this.closest('.task-content').querySelector('.task-title span');
+                
+                fetch(`/task/${taskId}/update-status/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `status=${this.value}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        if (data.task_status === 'completed') {
+                            taskTitle.classList.add('text-decoration-line-through', 'text-muted');
+                        } else {
+                            taskTitle.classList.remove('text-decoration-line-through', 'text-muted');
+                        }
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        });
+    </script>
 </body>
 </html> 

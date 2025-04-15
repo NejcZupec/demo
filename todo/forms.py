@@ -12,8 +12,8 @@ class TaskForm(forms.ModelForm):
 class TaskEditForm(forms.ModelForm):
     class Meta:
         model = Task
-        fields = ['title', 'completed']
+        fields = ['title', 'status']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
-            'completed': forms.CheckboxInput(attrs={'class': 'form-check-input'})
+            'status': forms.Select(attrs={'class': 'form-select'})
         } 

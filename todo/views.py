@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
 from .models import Task
 from .forms import TaskForm, TaskEditForm
 
@@ -33,3 +34,17 @@ def edit_task(request, task_id):
         'form': form,
         'task': task
     })
+
+def update_status(request, task_id):
+    if request.method == 'POST':
+        task = get_object_or_404(Task, id=task_id)
+        new_status = request.POST.get('status')
+        if new_status in dict(Task.STATUS_CHOICES):
+            task.status = new_status
+            task.save()
+            return JsonResponse({
+                'status': 'success',
+                'task_status': task.status,
+                'task_status_display': task.get_status_display()
+            })
+    return JsonResponse({'status': 'error'}, status=400)
