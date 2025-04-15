@@ -42,6 +42,10 @@
             background-color: #ffc069;
             color: white;
         }
+        .column-in_review .column-header {
+            background-color: #40a9ff;
+            color: white;
+        }
         .column-completed .column-header {
             background-color: #52c41a;
             color: white;
@@ -146,6 +150,25 @@
                 <div class="column-drop-zone">
                     {% for task in tasks %}
                         {% if task.status == 'in_progress' %}
+                        <div class="task-item" draggable="true" data-task-id="{{ task.id }}">
+                            <div class="task-title">{{ task.title }}</div>
+                            <div class="task-meta">
+                                Created: {{ task.created_at|date:"M d, Y" }}
+                            </div>
+                            <div class="task-actions">
+                                <a href="{% url 'edit_task' task.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="kanban-column column-in_review" data-status="in_review">
+                <div class="column-header">In Review</div>
+                <div class="column-drop-zone">
+                    {% for task in tasks %}
+                        {% if task.status == 'in_review' %}
                         <div class="task-item" draggable="true" data-task-id="{{ task.id }}">
                             <div class="task-title">{{ task.title }}</div>
                             <div class="task-meta">

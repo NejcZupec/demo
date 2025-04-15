@@ -18,6 +18,18 @@
             padding: 2rem;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+        .status-open {
+            color: #ff7875;
+        }
+        .status-in_progress {
+            color: #ffc069;
+        }
+        .status-in_review {
+            color: #40a9ff;
+        }
+        .status-completed {
+            color: #52c41a;
+        }
     </style>
 </head>
 <body>
@@ -42,5 +54,13 @@
             </form>
         </div>
     </div>
+
+    <script>
+        // Add color indicators to status options
+        const statusSelect = document.getElementById('id_status');
+        Array.from(statusSelect.options).forEach(option => {
+            option.classList.add(`status-${option.value}`);
+        });
+    </script>
 </body>
 </html> 
