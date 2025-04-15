@@ -118,19 +118,31 @@
     </style>
 </head>
 <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">Kanban Board</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/">Board</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#addTaskModal">New Task</a>
+                    </li>
+                </ul>
+                <span class="navbar-text">
+                    Total Tasks: {{ tasks|length }}
+                </span>
+            </div>
+        </div>
+    </nav>
+
     <div class="container-fluid">
         <h1 class="text-center mb-4">Kanban Board</h1>
         
-        <div class="task-form">
-            <form method="post">
-                {% csrf_token %}
-                <div class="input-group">
-                    {{ form.title }}
-                    <button type="submit" class="btn btn-primary">Add Task</button>
-                </div>
-            </form>
-        </div>
-
         <div class="kanban-board">
             <div class="kanban-column column-open" data-status="open">
                 <div class="column-header">Backlog <span class="task-count">({{ tasks|filter_status:'open'|length }})</span></div>
@@ -381,5 +393,31 @@
             }
         });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Add Task Modal -->
+    <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addTaskModalLabel">Add New Task</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post">
+                    <div class="modal-body">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="{{ form.title.id_for_label }}" class="form-label">Task Title</label>
+                            {{ form.title }}
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Add Task</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </body>
 </html> 
